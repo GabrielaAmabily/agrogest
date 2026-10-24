@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block titulo %}Cadastro - AgroGest{% endblock %}
+
+{% block conteudo %}
+
+<div class="row justify-content-center">
+    <div class="col-12 col-md-8 col-lg-5">
+
+        <div class="card card-agrogest">
+            <div class="card-body p-4">
+
+                <h2 class="titulo-principal text-center mb-4">
+                    Criar conta
+                </h2>
+
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+
+                    <div class="mb-3">
+                        {{ form.nome.label(class="form-label") }}
+                        {{ form.nome(class="form-control") }}
+
+                        {% for erro in form.nome.errors %}
+                            <div class="text-danger small">{{ erro }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.email.label(class="form-label") }}
+                        {{ form.email(class="form-control", type="email") }}
+
+                        {% for erro in form.email.errors %}
+                            <div class="text-danger small">{{ erro }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.senha.label(class="form-label") }}
+                        {{ form.senha(class="form-control") }}
+
+                        {% for erro in form.senha.errors %}
+                            <div class="text-danger small">{{ erro }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.confirmar_senha.label(class="form-label") }}
+                        {{ form.confirmar_senha(class="form-control") }}
+
+                        {% for erro in form.confirmar_senha.errors %}
+                            <div class="text-danger small">{{ erro }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <p class="text-muted small">
+                        O cadastro público é destinado aos fornecedores.
+                        O acesso aos registros será liberado após a
+                        vinculação da conta ao fornecedor.
+                    </p>
+
+                    {{ form.enviar(class="btn btn-agrogest w-100") }}
+
+                </form>
+
+                <p class="text-center mt-3 mb-0">
+                    Já possui conta?
+                    <a href="{{ url_for('login') }}">Entrar</a>
+                </p>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}
