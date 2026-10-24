@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
-from wtforms.validators import DataRequired, Length, EqualTo, Regexp
+from wtforms.validators import DataRequired, Length, EqualTo, Regexp, Optional
 
 
 class CadastroForm(FlaskForm):
@@ -38,14 +38,25 @@ class CadastroForm(FlaskForm):
 
 
 class LoginForm(FlaskForm):
-    email = StringField(
-        "E-mail",
-        validators=[DataRequired()]
-    )
-
-    senha = PasswordField(
-        "Senha",
-        validators=[DataRequired()]
-    )
-
+    email = StringField("E-mail", validators=[DataRequired()])
+    senha = PasswordField("Senha", validators=[DataRequired()])
     enviar = SubmitField("Entrar")
+
+
+class FornecedorForm(FlaskForm):
+    nome = StringField(
+        "Nome do fornecedor",
+        validators=[DataRequired(), Length(min=3, max=100)]
+    )
+
+    telefone = StringField(
+        "Telefone",
+        validators=[Optional(), Length(max=20)]
+    )
+
+    cpf_cnpj = StringField(
+        "CPF ou CNPJ (opcional)",
+        validators=[Optional(), Length(max=18)]
+    )
+
+    enviar = SubmitField("Salvar fornecedor")
