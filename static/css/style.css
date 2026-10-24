@@ -1,0 +1,126 @@
+
+/* ===================================
+   AgroGest - Estilos personalizados
+=================================== */
+
+/* Paleta de cores */
+
+:root {
+    --verde-principal: #246B45;
+    --verde-hover: #1B5235;
+    --vermelho-morango: #A82B3A;
+    --fundo-claro: #F6F8F3;
+    --texto-escuro: #26352D;
+}
+
+/* Estrutura geral */
+
+body {
+    background-color: var(--fundo-claro);
+    color: var(--texto-escuro);
+
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1;
+}
+
+/* Títulos */
+
+.titulo-principal {
+    color: var(--verde-principal);
+}
+
+/* Barra de navegação */
+
+.navbar-agrogest {
+    background-color: var(--verde-principal);
+}
+
+.navbar-agrogest .navbar-brand {
+    color: white;
+    font-size: 1.5rem;
+}
+
+.navbar-agrogest .nav-link {
+    color: rgba(255, 255, 255, 0.85);
+    margin-right: 10px;
+}
+
+.navbar-agrogest .nav-link:hover,
+.navbar-agrogest .nav-link.active {
+    color: white;
+}
+
+/* Botões */
+
+.btn-agrogest {
+    background-color: var(--verde-principal);
+    color: white;
+    border: none;
+}
+
+.btn-agrogest:hover {
+    background-color: var(--verde-hover);
+    color: white;
+}
+
+.btn-agrogest:focus-visible {
+    outline: 3px solid var(--vermelho-morango);
+    outline-offset: 2px;
+}
+
+.btn-login {
+    color: var(--verde-principal);
+    font-weight: 600;
+}
+
+/* Cartões de funcionalidades */
+
+.card-agrogest {
+    border: 1px solid #e0e7e0;
+    border-radius: 12px;
+
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card-agrogest:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.10);
+}
+
+.card-agrogest .card-title {
+    color: var(--verde-principal);
+    font-weight: 600;
+}
+
+/* Rodapé */
+
+.footer-agrogest {
+    background-color: var(--verde-principal);
+    color: white;
+}
+
+/* Responsividade */
+
+@media (max-width: 768px) {
+
+    .titulo-principal {
+        font-size: 1.8rem;
+    }
+
+    .navbar-agrogest .nav-link {
+        margin-right: 0;
+        padding: 10px 0;
+    }
+
+    .btn-login {
+        margin-top: 10px;
+    }
+
+}

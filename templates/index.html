@@ -1,0 +1,102 @@
+
+{% extends "base.html" %}
+
+{% block titulo %}
+Início - AgroGest
+{% endblock %}
+
+{% block conteudo %}
+
+<!-- Apresentação -->
+<section class="text-center py-4">
+
+    <h1 class="titulo-principal fw-bold">
+        Bem-vindo ao AgroGest!
+    </h1>
+
+    <p class="lead mt-3">
+        Sistema de Gestão de Produção Agrícola
+    </p>
+
+    <p class="text-muted">
+        Organize fornecedores, entregas, pagamentos
+        e estoque de insumos em um só lugar.
+    </p>
+
+    <a href="#" class="btn btn-agrogest btn-lg mt-3">
+        Acessar sistema
+    </a>
+
+</section>
+
+<!-- Funcionalidades -->
+<section class="mt-5">
+
+    <h2 class="text-center titulo-principal mb-4">
+        Funcionalidades
+    </h2>
+
+    <div class="row g-4">
+
+        <!-- Card de entregas -->
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="card card-agrogest h-100">
+                <div class="card-body">
+
+                    <h5 class="card-title">
+                        Entregas
+                    </h5>
+
+                    <p class="card-text">
+                        Registre entregas de morangos,
+                        quantidades de caixas e valores
+                        de cada dia.
+                    </p>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Card de pagamentos -->
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="card card-agrogest h-100">
+                <div class="card-body">
+
+                    <h5 class="card-title">
+                        Pagamentos
+                    </h5>
+
+                    <p class="card-text">
+                        Consulte valores pendentes,
+                        acompanhe pagamentos e gere
+                        relatórios em PDF.
+                    </p>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Card de estoque -->
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="card card-agrogest h-100">
+                <div class="card-body">
+
+                    <h5 class="card-title">
+                        Estoque
+                    </h5>
+
+                    <p class="card-text">
+                        Controle insumos agrícolas,
+                        embalagens, movimentações
+                        e alertas de estoque.
+                    </p>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</section>
+
+{% endblock %}
