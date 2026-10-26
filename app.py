@@ -17,11 +17,14 @@ from flask_wtf.csrf import CSRFProtect
 
 from models import db, Usuario, Fornecedor, Entrega
 from forms import CadastroForm, LoginForm, FornecedorForm, EntregaForm
+from pagamentos import pagamentos_bp
 
 
+# 1. Primeiro, criamos a aplicação Flask
 app = Flask(__name__)
 
-# Configurações
+
+# 2. Depois, configuramos a aplicação
 app.config["SECRET_KEY"] = os.environ.get("AGROGEST_SECRET_KEY")
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///agrogest.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
@@ -29,14 +32,23 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 if not app.config["SECRET_KEY"]:
     raise RuntimeError("Configure AGROGEST_SECRET_KEY.")
 
+
+# 3. Inicializamos as extensões
 db.init_app(app)
 CSRFProtect(app)
 
+
+# 4. Registramos o módulo de pagamentos
+app.register_blueprint(pagamentos_bp)
+
+
+# 5. Configuramos o Flask-Login
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = "login"
 login_manager.login_message = "Faça login para acessar esta página."
 login_manager.login_message_category = "warning"
+
 
 
 @login_manager.user_loader

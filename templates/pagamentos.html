@@ -1,0 +1,302 @@
+
+{% extends "base.html" %}
+
+{% block titulo %}Pagamentos - AgroGest{% endblock %}
+
+{% block conteudo %}
+
+<h2 class="titulo-principal mb-4">
+    Gestão de pagamentos
+</h2>
+
+<!-- Filtros -->
+<div class="card card-agrogest mb-4">
+    <div class="card-body">
+
+        <h5 class="card-title mb-3">
+            Consultar pagamentos
+        </h5>
+
+        <form method="GET"
+              action="{{ url_for('pagamentos.listar_pagamentos') }}">
+
+            <div class="row g-3">
+
+                <div class="col-12 col-md-6">
+                    <label for="fornecedor_id" class="form-label">
+                        Fornecedor
+                    </label>
+
+                    <select name="fornecedor_id"
+                            id="fornecedor_id"
+                            class="form-select">
+
+                        <option value="">Todos os fornecedores</option>
+
+                        {% for fornecedor in fornecedores %}
+                            <option value="{{ fornecedor.id }}"
+                                {% if filtros.fornecedor_id|string == fornecedor.id|string %}
+                                    selected
+                                {% endif %}>
+                                {{ fornecedor.nome }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-12 col-md-6">
+                    <label for="situacao" class="form-label">
+                        Situação
+                    </label>
+
+                    <select name="situacao"
+                            id="situacao"
+                            class="form-select">
+
+                        <option value="nao_paga"
+                            {% if filtros.situacao == 'nao_paga' %}selected{% endif %}>
+                            Pendentes
+                        </option>
+
+                        <option value="paga"
+                            {% if filtros.situacao == 'paga' %}selected{% endif %}>
+                            Pagas
+                        </option>
+
+                        <option value="todas"
+                            {% if filtros.situacao == 'todas' %}selected{% endif %}>
+                            Todas
+                        </option>
+                    </select>
+                </div>
+
+                <div class="col-12 col-md-6">
+                    <label for="data_inicio" class="form-label">
+                        Data inicial (opcional)
+                    </label>
+
+                    <input type="date"
+                           name="data_inicio"
+                           id="data_inicio"
+                           class="form-control"
+                           value="{{ filtros.data_inicio }}">
+                </div>
+
+                <div class="col-12 col-md-6">
+                    <label for="data_fim" class="form-label">
+                        Data final (opcional)
+                    </label>
+
+                    <input type="date"
+                           name="data_fim"
+                           id="data_fim"
+                           class="form-control"
+                           value="{{ filtros.data_fim }}">
+                </div>
+
+                <div class="col-12 d-flex flex-wrap gap-2">
+
+                    <button type="submit"
+                            class="btn btn-agrogest">
+                        Aplicar filtros
+                    </button>
+
+                    <a href="{{ url_for('pagamentos.listar_pagamentos') }}"
+                       class="btn btn-outline-secondary">
+                        Limpar filtros
+                    </a>
+
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Resumo financeiro -->
+<div class="row g-3 mb-4">
+
+    <div class="col-12 col-md-6">
+        <div class="card card-agrogest h-100">
+            <div class="card-body">
+                <p class="text-muted mb-1">
+                    Total pendente na consulta
+                </p>
+
+                <h3 class="titulo-principal mb-0">
+                    {{ total_pendente | moeda }}
+                </h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-md-6">
+        <div class="card card-agrogest h-100">
+            <div class="card-body">
+                <p class="text-muted mb-1">
+                    Total pago na consulta
+                </p>
+
+                <h3 class="text-success mb-0">
+                    {{ total_pago | moeda }}
+                </h3>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Resultados -->
+<div class="card card-agrogest">
+    <div class="card-body">
+
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+
+            <h5 class="card-title mb-0">
+                Entregas encontradas: {{ entregas|length }}
+            </h5>
+
+            {% if entregas %}
+                <a class="btn btn-outline-success"
+                   href="{{ url_for(
+                       'pagamentos.gerar_pdf',
+                       fornecedor_id=filtros.fornecedor_id,
+                       situacao=filtros.situacao,
+                       data_inicio=filtros.data_inicio,
+                       data_fim=filtros.data_fim
+                   ) }}">
+                    Baixar relatório PDF
+                </a>
+            {% endif %}
+
+        </div>
+
+        {% if entregas %}
+
+        <form method="POST"
+              action="{{ url_for('pagamentos.confirmar_pagamentos') }}"
+              onsubmit="return confirm('Confirmar o pagamento das entregas selecionadas?');">
+
+            <!-- Proteção CSRF -->
+            <input type="hidden"
+                   name="csrf_token"
+                   value="{{ csrf_token() }}">
+
+            <!-- Preserva os filtros -->
+            <input type="hidden"
+                   name="fornecedor_id"
+                   value="{{ filtros.fornecedor_id }}">
+
+            <input type="hidden"
+                   name="situacao"
+                   value="{{ filtros.situacao }}">
+
+            <input type="hidden"
+                   name="data_inicio"
+                   value="{{ filtros.data_inicio }}">
+
+            <input type="hidden"
+                   name="data_fim"
+                   value="{{ filtros.data_fim }}">
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+
+                    <thead>
+                        <tr>
+                            <th>Selecionar</th>
+                            <th>Fornecedor</th>
+                            <th>Data</th>
+                            <th>Caixas</th>
+                            <th>Unitário</th>
+                            <th>Total</th>
+                            <th>Situação</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for entrega in entregas %}
+                        <tr>
+
+                            <td>
+                                {% if entrega.situacao == 'nao_paga' %}
+                                    <input
+                                        type="checkbox"
+                                        class="form-check-input"
+                                        name="entrega_ids"
+                                        value="{{ entrega.id }}"
+                                        aria-label="Selecionar entrega {{ entrega.id }}">
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                {{ entrega.fornecedor.nome }}
+                            </td>
+
+                            <td>
+                                {{ entrega.data.strftime('%d/%m/%Y') }}
+                            </td>
+
+                            <td>
+                                {{ entrega.quantidade_caixas }}
+                            </td>
+
+                            <td>
+                                {{ entrega.valor_unitario | moeda }}
+                            </td>
+
+                            <td>
+                                <strong>
+                                    {{ entrega.valor_total | moeda }}
+                                </strong>
+                            </td>
+
+                            <td>
+                                {% if entrega.situacao == 'paga' %}
+                                    <span class="badge bg-success">
+                                        Paga
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-warning text-dark">
+                                        Não paga
+                                    </span>
+                                {% endif %}
+                            </td>
+
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+
+                </table>
+            </div>
+
+            {% if total_pendente > 0 %}
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mt-3">
+
+                    <p class="text-muted mb-0">
+                        Selecione as entregas para confirmar o pagamento.
+                    </p>
+
+                    <button type="submit"
+                            class="btn btn-agrogest">
+                        Marcar selecionadas como pagas
+                    </button>
+
+                </div>
+            {% endif %}
+
+        </form>
+
+        {% else %}
+
+            <div class="alert alert-info mb-0">
+                Nenhuma entrega encontrada para os filtros informados.
+            </div>
+
+        {% endif %}
+
+    </div>
+</div>
+
+{% endblock %}
