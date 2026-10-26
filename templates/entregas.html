@@ -1,0 +1,163 @@
+
+{% extends "base.html" %}
+
+{% block titulo %}Entregas - AgroGest{% endblock %}
+
+{% block conteudo %}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+    <h2 class="titulo-principal mb-0">Entregas de morangos</h2>
+
+    <a href="{{ url_for('nova_entrega') }}" class="btn btn-agrogest">
+        + Nova entrega
+    </a>
+</div>
+
+<!-- Filtros -->
+<div class="card card-agrogest mb-4">
+    <div class="card-body">
+        <h5 class="card-title mb-3">Filtrar entregas</h5>
+
+        <form method="GET" action="{{ url_for('listar_entregas') }}">
+            <div class="row g-3">
+
+                <div class="col-12 col-md-6">
+                    <label for="fornecedor_id" class="form-label">Fornecedor</label>
+                    <select name="fornecedor_id" id="fornecedor_id"
+                            class="form-select">
+                        <option value="">Todos</option>
+
+                        {% for fornecedor in fornecedores %}
+                            <option value="{{ fornecedor.id }}"
+                                {% if filtros.fornecedor_id == fornecedor.id %}
+                                    selected
+                                {% endif %}>
+                                {{ fornecedor.nome }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-12 col-md-6">
+                    <label for="situacao" class="form-label">Situação</label>
+                    <select name="situacao" id="situacao" class="form-select">
+                        <option value="">Todas</option>
+                        <option value="nao_paga"
+                            {% if filtros.situacao == 'nao_paga' %}selected{% endif %}>
+                            Não paga
+                        </option>
+                        <option value="paga"
+                            {% if filtros.situacao == 'paga' %}selected{% endif %}>
+                            Paga
+                        </option>
+                    </select>
+                </div>
+
+                <div class="col-12 col-md-6">
+                    <label for="data_inicio" class="form-label">Data inicial</label>
+                    <input type="date" name="data_inicio" id="data_inicio"
+                           class="form-control"
+                           value="{{ filtros.data_inicio }}">
+                </div>
+
+                <div class="col-12 col-md-6">
+                    <label for="data_fim" class="form-label">Data final</label>
+                    <input type="date" name="data_fim" id="data_fim"
+                           class="form-control"
+                           value="{{ filtros.data_fim }}">
+                </div>
+
+                <div class="col-12 d-flex gap-2">
+                    <button type="submit" class="btn btn-agrogest">
+                        Filtrar
+                    </button>
+
+                    <a href="{{ url_for('listar_entregas') }}"
+                       class="btn btn-outline-secondary">
+                        Limpar
+                    </a>
+                </div>
+
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Resultado -->
+<div class="card card-agrogest">
+    <div class="card-body">
+
+        {% if entregas %}
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Fornecedor</th>
+                            <th>Caixas</th>
+                            <th>Valor unitário</th>
+                            <th>Total</th>
+                            <th>Situação</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for entrega in entregas %}
+                        <tr>
+                            <td>{{ entrega.data.strftime('%d/%m/%Y') }}</td>
+                            <td>{{ entrega.fornecedor.nome }}</td>
+                            <td>{{ entrega.quantidade_caixas }}</td>
+                            <td>{{ entrega.valor_unitario | moeda }}</td>
+                            <td><strong>{{ entrega.valor_total | moeda }}</strong></td>
+
+                            <td>
+                                {% if entrega.situacao == "paga" %}
+                                    <span class="badge bg-success">Paga</span>
+                                {% else %}
+                                    <span class="badge bg-warning text-dark">
+                                        Não paga
+                                    </span>
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                {% if entrega.pode_editar %}
+                                    <a href="{{ url_for('editar_entrega', id=entrega.id) }}"
+                                       class="btn btn-sm btn-outline-primary">
+                                        Editar
+                                    </a>
+                                {% else %}
+                                    <span class="text-muted small">Bloqueada</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="d-flex justify-content-end mt-3">
+                <div class="text-end">
+                    <p class="text-muted mb-1">
+                        Total das entregas filtradas
+                    </p>
+                    <h3 class="titulo-principal">
+                        {{ total | moeda }}
+                    </h3>
+                </div>
+            </div>
+
+        {% else %}
+
+            <p class="text-muted text-center my-4">
+                Nenhuma entrega encontrada.
+            </p>
+
+        {% endif %}
+
+    </div>
+</div>
+
+{% endblock %}

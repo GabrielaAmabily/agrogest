@@ -1,6 +1,14 @@
+
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField
-from wtforms.validators import DataRequired, Length, EqualTo, Regexp, Optional
+from wtforms import (
+    StringField, PasswordField, SubmitField,
+    SelectField, DateField, IntegerField,
+    DecimalField, TextAreaField
+)
+from wtforms.validators import (
+    DataRequired, Length, EqualTo,
+    Regexp, Optional, NumberRange
+)
 
 
 class CadastroForm(FlaskForm):
@@ -60,3 +68,41 @@ class FornecedorForm(FlaskForm):
     )
 
     enviar = SubmitField("Salvar fornecedor")
+
+
+class EntregaForm(FlaskForm):
+    fornecedor_id = SelectField(
+        "Fornecedor",
+        coerce=int,
+        validators=[DataRequired()]
+    )
+
+    data = DateField(
+        "Data da entrega",
+        format="%Y-%m-%d",
+        validators=[DataRequired()]
+    )
+
+    quantidade_caixas = IntegerField(
+        "Quantidade de caixas",
+        validators=[
+            DataRequired(),
+            NumberRange(min=1, message="Informe ao menos uma caixa.")
+        ]
+    )
+
+    valor_unitario = DecimalField(
+        "Valor unitário (R$)",
+        places=2,
+        validators=[
+            DataRequired(),
+            NumberRange(min=0.01, message="Informe um valor positivo.")
+        ]
+    )
+
+    observacoes = TextAreaField(
+        "Observações",
+        validators=[Optional(), Length(max=500)]
+    )
+
+    enviar = SubmitField("Salvar entrega")

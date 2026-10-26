@@ -1,3 +1,6 @@
+
+from decimal import Decimal
+
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -38,3 +41,47 @@ class Fornecedor(db.Model):
     )
 
     usuario = db.relationship("Usuario", backref="fornecedor_vinculado")
+
+
+class Entrega(db.Model):
+    __tablename__ = "entregas"
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    fornecedor_id = db.Column(
+        db.Integer,
+        db.ForeignKey("fornecedores.id"),
+        nullable=False
+    )
+
+    data = db.Column(db.Date, nullable=False)
+    quantidade_caixas = db.Column(db.Integer, nullable=False)
+
+    valor_unitario = db.Column(
+        db.Numeric(12, 2),
+        nullable=False
+    )
+
+    observacoes = db.Column(db.Text)
+
+    situacao = db.Column(
+        db.String(20),
+        nullable=False,
+        default="nao_paga"
+    )
+
+    fornecedor = db.relationship(
+        "Fornecedor",
+        backref=db.backref("entregas", lazy=True)
+    )
+
+    @property
+    def valor_total(self):
+        return (
+            Decimal(self.quantidade_caixas)
+            * self.valor_unitario
+        )
+
+    @property
+    def pode_editar(self):
+        return self.situacao == "nao_paga"
