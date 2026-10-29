@@ -18,13 +18,15 @@ from flask_wtf.csrf import CSRFProtect
 from models import db, Usuario, Fornecedor, Entrega
 from forms import CadastroForm, LoginForm, FornecedorForm, EntregaForm
 from pagamentos import pagamentos_bp
+from portal_fornecedor import portal_bp
 
 
-# 1. Primeiro, criamos a aplicação Flask
+# ============================
+# CONFIGURAÇÃO DA APLICAÇÃO
+# ============================
+
 app = Flask(__name__)
 
-
-# 2. Depois, configuramos a aplicação
 app.config["SECRET_KEY"] = os.environ.get("AGROGEST_SECRET_KEY")
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///agrogest.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
@@ -32,17 +34,14 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 if not app.config["SECRET_KEY"]:
     raise RuntimeError("Configure AGROGEST_SECRET_KEY.")
 
-
-# 3. Inicializamos as extensões
 db.init_app(app)
 CSRFProtect(app)
 
-
-# 4. Registramos o módulo de pagamentos
+# Módulos separados
 app.register_blueprint(pagamentos_bp)
+app.register_blueprint(portal_bp)
 
-
-# 5. Configuramos o Flask-Login
+# Autenticação
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = "login"
@@ -50,13 +49,15 @@ login_manager.login_message = "Faça login para acessar esta página."
 login_manager.login_message_category = "warning"
 
 
-
 @login_manager.user_loader
 def carregar_usuario(usuario_id):
     return db.session.get(Usuario, int(usuario_id))
 
 
-# Permissões
+# ============================
+# PERMISSÕES
+# ============================
+
 def somente_proprietario(funcao):
     @wraps(funcao)
     @login_required
@@ -67,21 +68,35 @@ def somente_proprietario(funcao):
     return protegida
 
 
-# Formatação monetária
+# ============================
+# FORMATAÇÃO MONETÁRIA
+# ============================
+
 @app.template_filter("moeda")
 def formatar_moeda(valor):
     valor = Decimal(str(valor))
     texto = f"{valor:,.2f}"
-    return "R$ " + texto.replace(",", "X").replace(".", ",").replace("X", ".")
+
+    return "R$ " + (
+        texto.replace(",", "X")
+        .replace(".", ",")
+        .replace("X", ".")
+    )
 
 
-# Página inicial
+# ============================
+# PÁGINA INICIAL
+# ============================
+
 @app.route("/")
 def inicio():
     return render_template("index.html")
 
 
-# Cadastro de usuário
+# ============================
+# CADASTRO DE USUÁRIOS
+# ============================
+
 @app.route("/cadastro", methods=["GET", "POST"])
 def cadastro():
     if current_user.is_authenticated:
@@ -101,6 +116,7 @@ def cadastro():
             email=email,
             perfil="fornecedor"
         )
+
         usuario.definir_senha(form.senha.data)
 
         db.session.add(usuario)
@@ -112,7 +128,10 @@ def cadastro():
     return render_template("cadastro.html", form=form)
 
 
-# Login
+# ============================
+# LOGIN E LOGOUT
+# ============================
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if current_user.is_authenticated:
@@ -134,7 +153,6 @@ def login():
     return render_template("login.html", form=form)
 
 
-# Logout
 @app.route("/logout", methods=["POST"])
 @login_required
 def logout():
@@ -143,15 +161,21 @@ def logout():
     return redirect(url_for("inicio"))
 
 
-# Listagem de fornecedores
+# ============================
+# FORNECEDORES
+# ============================
+
 @app.route("/fornecedores")
 @somente_proprietario
 def listar_fornecedores():
     fornecedores = Fornecedor.query.order_by(Fornecedor.nome).all()
-    return render_template("fornecedores.html", fornecedores=fornecedores)
+
+    return render_template(
+        "fornecedores.html",
+        fornecedores=fornecedores
+    )
 
 
-# Cadastro de fornecedor
 @app.route("/fornecedores/novo", methods=["GET", "POST"])
 @somente_proprietario
 def novo_fornecedor():
@@ -160,7 +184,9 @@ def novo_fornecedor():
     if form.validate_on_submit():
         documento = form.cpf_cnpj.data.strip() or None
 
-        if documento and Fornecedor.query.filter_by(cpf_cnpj=documento).first():
+        if documento and Fornecedor.query.filter_by(
+            cpf_cnpj=documento
+        ).first():
             flash("Este CPF/CNPJ já está cadastrado.", "danger")
             return render_template(
                 "form_fornecedor.html",
@@ -187,7 +213,6 @@ def novo_fornecedor():
     )
 
 
-# Edição de fornecedor
 @app.route("/fornecedores/<int:id>/editar", methods=["GET", "POST"])
 @somente_proprietario
 def editar_fornecedor(id):
@@ -204,7 +229,10 @@ def editar_fornecedor(id):
             ).first()
 
             if existente:
-                flash("Este CPF/CNPJ pertence a outro fornecedor.", "danger")
+                flash(
+                    "Este CPF/CNPJ pertence a outro fornecedor.",
+                    "danger"
+                )
                 return render_template(
                     "form_fornecedor.html",
                     form=form,
@@ -227,13 +255,12 @@ def editar_fornecedor(id):
     )
 
 
-# Ativação ou desativação de fornecedor
 @app.route("/fornecedores/<int:id>/situacao", methods=["POST"])
 @somente_proprietario
 def alterar_situacao_fornecedor(id):
     fornecedor = db.get_or_404(Fornecedor, id)
-    fornecedor.ativo = not fornecedor.ativo
 
+    fornecedor.ativo = not fornecedor.ativo
     db.session.commit()
 
     flash("Situação do fornecedor atualizada!", "success")
@@ -241,15 +268,14 @@ def alterar_situacao_fornecedor(id):
 
 
 # ============================
-# MÓDULO DE ENTREGAS
+# ENTREGAS
 # ============================
 
 def configurar_fornecedores(form, fornecedor_atual=None):
-    fornecedores = Fornecedor.query.filter_by(ativo=True).order_by(
-        Fornecedor.nome
-    ).all()
+    fornecedores = Fornecedor.query.filter_by(
+        ativo=True
+    ).order_by(Fornecedor.nome).all()
 
-    # Permite editar uma entrega de fornecedor desativado
     if fornecedor_atual and fornecedor_atual not in fornecedores:
         fornecedores.append(fornecedor_atual)
 
@@ -270,16 +296,21 @@ def listar_entregas():
     data_fim = request.args.get("data_fim", "")
 
     if fornecedor_id:
-        consulta = consulta.filter(Entrega.fornecedor_id == fornecedor_id)
+        consulta = consulta.filter(
+            Entrega.fornecedor_id == fornecedor_id
+        )
 
     if situacao in ("nao_paga", "paga"):
-        consulta = consulta.filter(Entrega.situacao == situacao)
+        consulta = consulta.filter(
+            Entrega.situacao == situacao
+        )
 
     try:
         if data_inicio:
             consulta = consulta.filter(
                 Entrega.data >= date.fromisoformat(data_inicio)
             )
+
         if data_fim:
             consulta = consulta.filter(
                 Entrega.data <= date.fromisoformat(data_fim)
@@ -288,14 +319,19 @@ def listar_entregas():
         flash("Uma das datas informadas é inválida.", "warning")
         return redirect(url_for("listar_entregas"))
 
-    entregas = consulta.order_by(Entrega.data.desc(), Entrega.id.desc()).all()
+    entregas = consulta.order_by(
+        Entrega.data.desc(),
+        Entrega.id.desc()
+    ).all()
 
     total = sum(
         (entrega.valor_total for entrega in entregas),
         Decimal("0.00")
     )
 
-    fornecedores = Fornecedor.query.order_by(Fornecedor.nome).all()
+    fornecedores = Fornecedor.query.order_by(
+        Fornecedor.nome
+    ).all()
 
     return render_template(
         "entregas.html",
@@ -321,11 +357,16 @@ def nova_entrega():
         form.data.data = date.today()
 
     if not form.fornecedor_id.choices:
-        flash("Cadastre um fornecedor ativo antes de registrar entregas.", "warning")
+        flash(
+            "Cadastre um fornecedor ativo antes de registrar entregas.",
+            "warning"
+        )
         return redirect(url_for("listar_fornecedores"))
 
     if form.validate_on_submit():
-        fornecedor = db.session.get(Fornecedor, form.fornecedor_id.data)
+        fornecedor = db.session.get(
+            Fornecedor, form.fornecedor_id.data
+        )
 
         if not fornecedor or not fornecedor.ativo:
             flash("Selecione um fornecedor ativo.", "danger")
@@ -363,20 +404,27 @@ def editar_entrega(id):
     entrega = db.get_or_404(Entrega, id)
 
     if not entrega.pode_editar:
-        flash("Entregas pagas não podem ser editadas diretamente.", "warning")
+        flash(
+            "Entregas pagas não podem ser editadas diretamente.",
+            "warning"
+        )
         return redirect(url_for("listar_entregas"))
 
     form = EntregaForm(obj=entrega)
     configurar_fornecedores(form, entrega.fornecedor)
 
     if form.validate_on_submit():
-        fornecedor = db.session.get(Fornecedor, form.fornecedor_id.data)
+        fornecedor = db.session.get(
+            Fornecedor, form.fornecedor_id.data
+        )
 
         if not fornecedor:
             abort(400)
 
-        # Impede trocar para outro fornecedor inativo
-        if not fornecedor.ativo and fornecedor.id != entrega.fornecedor_id:
+        if (
+            not fornecedor.ativo
+            and fornecedor.id != entrega.fornecedor_id
+        ):
             flash("Selecione um fornecedor ativo.", "danger")
             return render_template(
                 "form_entrega.html",
@@ -430,6 +478,7 @@ def criar_proprietario(nome, email, senha):
         email=email,
         perfil="proprietario"
     )
+
     usuario.definir_senha(senha)
 
     db.session.add(usuario)
@@ -438,7 +487,10 @@ def criar_proprietario(nome, email, senha):
     click.echo("Proprietário cadastrado com sucesso!")
 
 
-# Criação das tabelas
+# ============================
+# INICIALIZAÇÃO
+# ============================
+
 with app.app_context():
     db.create_all()
 

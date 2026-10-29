@@ -1,0 +1,133 @@
+
+{% extends "base.html" %}
+
+{% block titulo %}
+Minhas entregas - AgroGest
+{% endblock %}
+
+{% block conteudo %}
+
+<h2 class="titulo-principal mb-4">
+    Minhas entregas e pagamentos
+</h2>
+
+{% if fornecedor %}
+
+    <p class="text-muted mb-4">
+        Fornecedor: <strong>{{ fornecedor.nome }}</strong>
+    </p>
+
+    <div class="row g-3 mb-4">
+
+        <div class="col-12 col-md-6">
+            <div class="card card-agrogest h-100">
+                <div class="card-body">
+                    <p class="text-muted mb-1">
+                        Total pendente
+                    </p>
+                    <h3 class="titulo-principal">
+                        {{ total_pendente | moeda }}
+                    </h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6">
+            <div class="card card-agrogest h-100">
+                <div class="card-body">
+                    <p class="text-muted mb-1">
+                        Total pago
+                    </p>
+                    <h3 class="text-success">
+                        {{ total_pago | moeda }}
+                    </h3>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="card card-agrogest">
+        <div class="card-body">
+
+            <h5 class="card-title mb-3">
+                Histórico de entregas
+            </h5>
+
+            {% if entregas %}
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Caixas</th>
+                                <th>Valor unitário</th>
+                                <th>Total</th>
+                                <th>Situação</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for entrega in entregas %}
+                                <tr>
+                                    <td>
+                                        {{ entrega.data.strftime('%d/%m/%Y') }}
+                                    </td>
+
+                                    <td>
+                                        {{ entrega.quantidade_caixas }}
+                                    </td>
+
+                                    <td>
+                                        {{ entrega.valor_unitario | moeda }}
+                                    </td>
+
+                                    <td>
+                                        <strong>
+                                            {{ entrega.valor_total | moeda }}
+                                        </strong>
+                                    </td>
+
+                                    <td>
+                                        {% if entrega.situacao == "paga" %}
+                                            <span class="badge bg-success">
+                                                Paga
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-warning text-dark">
+                                                Não paga
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+
+                    </table>
+                </div>
+
+            {% else %}
+
+                <p class="text-muted">
+                    Nenhuma entrega registrada para sua conta.
+                </p>
+
+            {% endif %}
+
+        </div>
+    </div>
+
+{% else %}
+
+    <div class="alert alert-warning">
+        Sua conta ainda não está vinculada a um
+        fornecedor. Entre em contato com o
+        proprietário para solicitar a vinculação.
+    </div>
+
+{% endif %}
+
+{% endblock %}
+

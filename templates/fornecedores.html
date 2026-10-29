@@ -6,6 +6,7 @@
 {% block conteudo %}
 
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+
     <h2 class="titulo-principal mb-0">
         Fornecedores
     </h2>
@@ -14,6 +15,7 @@
        class="btn btn-agrogest">
         + Novo fornecedor
     </a>
+
 </div>
 
 <div class="card card-agrogest">
@@ -22,6 +24,7 @@
         {% if fornecedores %}
 
         <div class="table-responsive">
+
             <table class="table table-hover align-middle">
 
                 <thead>
@@ -30,65 +33,118 @@
                         <th>Telefone</th>
                         <th>CPF/CNPJ</th>
                         <th>Situação</th>
+                        <th>Conta de acesso</th>
                         <th>Ações</th>
                     </tr>
                 </thead>
 
                 <tbody>
+
                     {% for fornecedor in fornecedores %}
+
                     <tr>
-                        <td>{{ fornecedor.nome }}</td>
-                        <td>{{ fornecedor.telefone or "-" }}</td>
-                        <td>{{ fornecedor.cpf_cnpj or "-" }}</td>
+
+                        <td>
+                            {{ fornecedor.nome }}
+                        </td>
+
+                        <td>
+                            {{ fornecedor.telefone or "-" }}
+                        </td>
+
+                        <td>
+                            {{ fornecedor.cpf_cnpj or "-" }}
+                        </td>
 
                         <td>
                             {% if fornecedor.ativo %}
-                                <span class="badge bg-success">Ativo</span>
+                                <span class="badge bg-success">
+                                    Ativo
+                                </span>
                             {% else %}
-                                <span class="badge bg-secondary">Inativo</span>
+                                <span class="badge bg-secondary">
+                                    Inativo
+                                </span>
                             {% endif %}
                         </td>
 
                         <td>
+                            {% if fornecedor.usuario %}
+                                <span class="badge bg-success">
+                                    Vinculada
+                                </span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark">
+                                    Não vinculada
+                                </span>
+                            {% endif %}
+                        </td>
+
+                        <td>
+
                             <div class="d-flex flex-wrap gap-2">
+
+                                <!-- Editar -->
                                 <a href="{{ url_for('editar_fornecedor', id=fornecedor.id) }}"
                                    class="btn btn-sm btn-outline-primary">
                                     Editar
                                 </a>
 
+                                <!-- Vincular conta -->
+                                <a href="{{ url_for('portal.vincular_fornecedor', id=fornecedor.id) }}"
+                                   class="btn btn-sm btn-outline-success">
+                                    Vincular conta
+                                </a>
+
+                                <!-- Ativar / Desativar -->
                                 <form method="POST"
                                       action="{{ url_for('alterar_situacao_fornecedor', id=fornecedor.id) }}">
 
-                                    <input type="hidden"
-                                           name="csrf_token"
-                                           value="{{ csrf_token() }}">
+                                    <input
+                                        type="hidden"
+                                        name="csrf_token"
+                                        value="{{ csrf_token() }}"
+                                    >
 
                                     {% if fornecedor.ativo %}
-                                        <button class="btn btn-sm btn-outline-danger"
-                                                type="submit">
+
+                                        <button
+                                            type="submit"
+                                            class="btn btn-sm btn-outline-danger">
                                             Desativar
                                         </button>
+
                                     {% else %}
-                                        <button class="btn btn-sm btn-outline-success"
-                                                type="submit">
+
+                                        <button
+                                            type="submit"
+                                            class="btn btn-sm btn-outline-success">
                                             Reativar
                                         </button>
+
                                     {% endif %}
+
                                 </form>
+
                             </div>
+
                         </td>
+
                     </tr>
+
                     {% endfor %}
+
                 </tbody>
 
             </table>
+
         </div>
 
         {% else %}
 
-        <p class="text-muted text-center my-4">
-            Nenhum fornecedor cadastrado.
-        </p>
+            <p class="text-muted text-center my-4">
+                Nenhum fornecedor cadastrado.
+            </p>
 
         {% endif %}
 
