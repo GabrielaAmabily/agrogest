@@ -142,12 +142,18 @@ def editar_insumo(id):
             flash(erro, 'danger')
         else:
             nome, categoria, unidade, minimo = dados
-            # Evita corromper quantidades históricas em unidades distintas.
+            # Unidades não podem mudar após qualquer movimentação.
             if insumo.quantidade_total > 0 and unidade != insumo.unidade:
                 flash('Não altere a unidade enquanto houver quantidade em estoque.', 'danger')
             elif (MovimentacaoEstoque.query.filter_by(insumo_id=id).first()
                   and unidade != insumo.unidade):
                 flash('A unidade não pode ser alterada após haver movimentações.', 'danger')
+            # Evita transformar um insumo em defensivo mantendo lotes ativos sem validade.
+            elif categoria == 'Defensivo' and any(
+                lote.quantidade_atual > 0 and lote.validade is None
+                for lote in insumo.lotes
+            ):
+                flash('Para classificar como defensivo, primeiro dê baixa nos lotes sem validade.', 'danger')
             else:
                 insumo.nome = nome
                 insumo.categoria = categoria

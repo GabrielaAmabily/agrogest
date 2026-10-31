@@ -2,167 +2,142 @@
 
 **Sistema web de gestão de fornecedores, entregas, pagamentos e estoque de insumos para a produção de morangos.**
 
-Projeto acadêmico desenvolvido na disciplina **Laboratório de Engenharia de Software I**, do curso de **Engenharia de Computação da Universidade Federal de Itajubá (UNIFEI)**.
+Projeto acadêmico de **Gabriela Amabily Cézar**, Engenharia de Computação — Universidade Federal de Itajubá (UNIFEI), disciplina **ECOT11A — Laboratório de Engenharia de Software I**.
 
 ## Sobre o projeto
 
-O AgroGest foi criado para apoiar o controle de operações de um produtor de morangos. O sistema centraliza o cadastro de fornecedores, o registro de entregas e seus valores, o acompanhamento de pagamentos e a movimentação de materiais utilizados na produção.
+O AgroGest centraliza o cadastro de fornecedores, o registro de entregas de morangos e seus valores, o acompanhamento de pagamentos e a movimentação de materiais utilizados na produção.
 
-A aplicação possui dois perfis de acesso:
-
-- **Proprietário:** gerencia fornecedores, entregas, pagamentos e estoque de insumos.
-- **Fornecedor:** consulta somente seu próprio histórico de entregas e os respectivos valores e pagamentos, quando sua conta está vinculada a um cadastro de fornecedor.
+**Perfis disponíveis:**
+- **Proprietário:** gerencia fornecedores, entregas, pagamentos e estoque.
+- **Fornecedor:** consulta somente as entregas e pagamentos do cadastro associado à sua conta.
 
 ## Funcionalidades
 
-### Fornecedores
-- Cadastro, consulta e edição de fornecedores.
-- Ativação e desativação de cadastros.
-- Validação para evitar CPF/CNPJ duplicado.
-- Vinculação de uma conta de usuário ao cadastro de fornecedor.
+**Fornecedores:** cadastro, consulta e edição; ativação/desativação; prevenção de CPF/CNPJ duplicado; vinculação de conta de acesso.
 
-### Entregas e pagamentos
-- Registro de entregas com data, fornecedor, quantidade de caixas e preço unitário.
-- Cálculo automático do valor da entrega (**quantidade × preço unitário**).
-- Filtros de consulta por fornecedor, período e situação de pagamento.
-- Identificação de entregas pagas e não pagas.
-- Confirmação de pagamentos e bloqueio da edição de entregas já pagas.
-- Geração de relatório de pagamentos em PDF.
+**Entregas e pagamentos:** data, fornecedor, quantidade de caixas e preço unitário; total calculado automaticamente; filtros por fornecedor, datas e situação; confirmação de pagamentos; bloqueio de edição de entregas pagas pelo fluxo normal; relatórios PDF.
 
-### Estoque de insumos
-- Cadastro e edição de insumos, categoria, unidade de medida e estoque mínimo.
-- Registro de entradas por lotes, com validade quando aplicável.
-- Registro de saídas e atualização do saldo disponível.
-- Bloqueio de saídas superiores ao estoque disponível e de consumo de lotes vencidos.
-- Alertas de estoque baixo e de lotes vencidos ou próximos do vencimento.
-- Consulta de lotes, descarte de lotes e histórico de movimentações.
-- Desativação e reativação de insumos.
+**Estoque de insumos:** cadastro e edição; categorias, unidades e estoque mínimo; entradas separadas por lotes; saídas por ordem de validade; bloqueio de uso de lote vencido e de saída superior ao saldo; alertas de estoque mínimo e vencimentos; consulta e descarte de lotes, histórico de movimentações e inativação de insumos. Defensivos exigem validade e a edição da categoria não pode deixar lotes ativos sem validade.
 
-### Segurança
-- Autenticação com senha armazenada por hash.
-- Controle de acesso conforme o perfil do usuário.
-- Restrição de dados do portal de fornecedores ao próprio fornecedor autenticado.
-- Proteção CSRF nos formulários da aplicação.
+**Segurança:** senhas armazenadas por hash; controle de acesso por perfil; isolamento das informações de fornecedores; proteção CSRF nos formulários da aplicação.
 
-## Tecnologias utilizadas
+## Tecnologias
 
-- **Python 3** e **Flask** — aplicação web.
-- **Flask-SQLAlchemy** e **SQLite** — persistência de dados.
-- **Flask-Login** — sessões e autenticação.
-- **Flask-WTF** — formulários e proteção CSRF.
-- **Bootstrap 5** — interface responsiva.
-- **ReportLab** — geração de arquivos PDF.
-- **pytest** — testes automatizados.
-- **Git e GitHub** — versionamento do código.
+Python 3, Flask, Flask-SQLAlchemy, SQLite, Flask-Login, Flask-WTF, Bootstrap 5, ReportLab, pytest, Git e GitHub.
 
-## Como executar localmente
+## Instalação e execução local
 
-As instruções abaixo usam **PowerShell no Windows**. É necessário ter Python e Git instalados.
+Pré-requisitos: Python 3 e Git. O projeto não exige servidor externo de banco de dados. **É obrigatório configurar `AGROGEST_SECRET_KEY` antes de iniciar a aplicação ou executar o comando de criação de proprietário.** Não publique o valor gerado da chave no GitHub.
 
 ### 1. Clonar o repositório
 
-```powershell
+```bash
 git clone https://github.com/GabrielaAmabily/agrogest.git
 cd agrogest
 ```
 
 ### 2. Criar e ativar o ambiente virtual
 
+**Windows (PowerShell):**
+
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 ```
 
-### 3. Instalar as dependências
+**Linux/macOS:**
 
-```powershell
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+### 3. Instalar dependências
+
+```bash
 python -m pip install -r requirements.txt
 ```
 
-### 4. Configurar a chave secreta
+Em sistemas que usam `python3` no lugar de `python`, substitua o comando pelo executável correspondente.
 
-No PowerShell, configure uma chave para a sessão atual:
+### 4. Configurar a chave secreta — obrigatório
+
+**Windows (PowerShell):**
 
 ```powershell
 $env:AGROGEST_SECRET_KEY = python -c "import secrets; print(secrets.token_hex(32))"
 ```
 
-> A chave é necessária para as sessões e os formulários. Ela não deve ser incluída no código-fonte nem enviada ao GitHub. O comando acima gera uma nova chave a cada sessão do terminal, o que pode invalidar logins anteriores.
+**Linux/macOS:**
 
-### 5. Criar o usuário proprietário
+```bash
+export AGROGEST_SECRET_KEY="$(python3 -c 'import secrets; print(secrets.token_hex(32))')"
+```
 
-Em uma instalação nova, execute:
+Esses comandos **geram uma chave nova**. Eles podem aparecer publicamente no README; o **valor gerado da chave**, não. A variável é válida apenas para a sessão atual do terminal; ao abrir um terminal novo, execute o comando novamente. Isso pode invalidar sessões de login anteriores, mas não remove os dados do SQLite.
 
-```powershell
+### 5. Criar a conta do proprietário (primeira instalação)
+
+```bash
 python -m flask --app app criar-proprietario
 ```
 
-Informe nome, e-mail e senha quando solicitado. Esse comando é destinado à configuração inicial da aplicação; se já houver proprietário cadastrado, não é necessário repeti-lo.
+Informe nome, e-mail e senha quando solicitado. O comando permite uma única conta de proprietário; em instalações existentes, não é necessário repeti-lo.
 
-### 6. Iniciar o servidor
+### 6. Iniciar o sistema
 
-```powershell
+```bash
 python app.py
 ```
 
-Abra **http://127.0.0.1:5000** no navegador.
+Abra **http://127.0.0.1:5000** no navegador. O banco SQLite é criado automaticamente em `instance/agrogest.db` na primeira execução. Ele não é incluído no GitHub.
 
-O SQLite é inicializado automaticamente na primeira execução. O arquivo local do banco não deve ser versionado.
+## Como testar os dois perfis
 
-## Como executar os testes
+**Proprietário:** entre com o e-mail e a senha cadastrados no passo 5. Cadastre um fornecedor em **Fornecedores**, registre uma entrega e consulte **Pagamentos** e **Estoque**.
 
-Instale as dependências de teste:
+**Fornecedor:** abra o sistema em uma janela anônima ou saia da conta administrativa. Use **Cadastrar** para criar uma conta comum com outro e-mail. Depois entre novamente como proprietário, abra **Fornecedores → Vincular conta** e associe a conta recém-criada ao fornecedor comercial desejado. Saia e entre como fornecedor: no menu **Minhas entregas**, você verá somente o histórico correspondente àquele vínculo.
 
-```powershell
+> A conta de fornecedor e o cadastro comercial são entidades separadas. Criar a conta no formulário público não vincula automaticamente um histórico comercial.
+
+## Testes automatizados
+
+```bash
 python -m pip install -r requirements-test.txt
-```
-
-Execute:
-
-```powershell
 python -m pytest -v
 ```
 
-Os testes usam uma aplicação Flask isolada e um banco SQLite temporário; não devem acessar o banco de desenvolvimento. Na última execução local registrada durante o desenvolvimento, **6 testes passaram**, contemplando cálculo financeiro, regras de estoque e restrições de acesso.
+Os testes utilizam um banco SQLite temporário e não devem acessar o banco de desenvolvimento. O projeto registrou **6 testes automatizados aprovados** antes da última correção; há dois testes adicionais de regressão sobre a categoria de defensivos, cuja execução deve ser confirmada após aplicar essa alteração.
 
-## Organização do projeto
+## Estrutura do projeto
 
 ```text
 agrogest/
-├── app.py                  # Configuração Flask e rotas principais
-├── models.py               # Modelos centrais de dados
-├── forms.py                # Formulários
-├── pagamentos.py           # Consultas, confirmação de pagamentos e PDF
-├── portal_fornecedor.py    # Vinculação e consulta individual
-├── estoque.py              # Insumos, lotes e movimentações
-├── templates/              # Páginas HTML / Jinja2
-├── static/                 # Arquivos de estilo e recursos estáticos
-├── tests/                  # Testes automatizados
-├── requirements.txt        # Dependências da aplicação
-├── requirements-test.txt   # Dependências adicionais de testes
+├── app.py                       # Aplicação Flask e rotas principais
+├── models.py                    # Usuários, fornecedores e entregas
+├── forms.py                     # Formulários
+├── pagamentos.py                # Pagamentos e PDF
+├── portal_fornecedor.py         # Vinculação e consulta individual
+├── estoque.py                   # Insumos, lotes e movimentações
+├── templates/                   # Páginas HTML e Jinja2
+├── static/css/                  # Estilos
+├── tests/                       # Testes automatizados
+├── requirements.txt             # Dependências da aplicação
+├── requirements-test.txt        # Dependências de teste
 └── README.md
 ```
 
-## Regras de negócio de destaque
+## Limitações e evoluções
 
-- O valor de cada entrega é calculado pela multiplicação da quantidade de caixas pelo preço unitário informado.
-- Uma entrega marcada como paga não pode ser editada pelo fluxo normal do sistema.
-- Cada fornecedor autenticado pode consultar somente os registros associados à sua conta vinculada.
-- Saídas de estoque não podem exceder a quantidade disponível.
-- Lotes vencidos não são considerados disponíveis para consumo.
+O AgroGest é um MVP acadêmico. Entre os pontos para evoluir estão quantidades fracionárias no estoque, rastreabilidade de cada saída por lote, mais testes de concorrência e maior robustez para implantação em produção. A imutabilidade das entregas pagas é garantida pelo fluxo regular da aplicação, não por bloqueio imutável no banco de dados.
 
-## Limitações e evolução
+## Repositório e histórico
 
-O AgroGest é um **projeto acadêmico em desenvolvimento**. Entre os pontos de evolução estão:
+Código-fonte: https://github.com/GabrielaAmabily/agrogest
 
-- Suporte a quantidades fracionárias em algumas unidades de estoque.
-- Rastreabilidade mais detalhada dos lotes utilizados em cada saída.
-- Ampliação dos testes automatizados e testes de concorrência.
-- Preparação e validação de uma implantação pública com configuração segura de produção.
+Histórico de desenvolvimento: https://github.com/GabrielaAmabily/agrogest/commits/main
 
 ## Autoria
 
-**Gabriela Amabily Cézar**  
-Engenharia de Computação — Universidade Federal de Itajubá (UNIFEI)
-
-Repositório: https://github.com/GabrielaAmabily/agrogest
+**Gabriela Amabily Cézar** — Engenharia de Computação, UNIFEI.
