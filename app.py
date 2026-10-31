@@ -17,13 +17,15 @@ from flask_wtf.csrf import CSRFProtect
 
 from models import db, Usuario, Fornecedor, Entrega
 from forms import CadastroForm, LoginForm, FornecedorForm, EntregaForm
+
 from pagamentos import pagamentos_bp
 from portal_fornecedor import portal_bp
+from estoque import estoque_bp
 
 
-# ============================
+# =====================================
 # CONFIGURAÇÃO DA APLICAÇÃO
-# ============================
+# =====================================
 
 app = Flask(__name__)
 
@@ -37,11 +39,15 @@ if not app.config["SECRET_KEY"]:
 db.init_app(app)
 CSRFProtect(app)
 
-# Módulos separados
 app.register_blueprint(pagamentos_bp)
 app.register_blueprint(portal_bp)
+app.register_blueprint(estoque_bp)
 
-# Autenticação
+
+# =====================================
+# AUTENTICAÇÃO
+# =====================================
+
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = "login"
@@ -54,9 +60,9 @@ def carregar_usuario(usuario_id):
     return db.session.get(Usuario, int(usuario_id))
 
 
-# ============================
+# =====================================
 # PERMISSÕES
-# ============================
+# =====================================
 
 def somente_proprietario(funcao):
     @wraps(funcao)
@@ -68,9 +74,9 @@ def somente_proprietario(funcao):
     return protegida
 
 
-# ============================
+# =====================================
 # FORMATAÇÃO MONETÁRIA
-# ============================
+# =====================================
 
 @app.template_filter("moeda")
 def formatar_moeda(valor):
@@ -84,18 +90,18 @@ def formatar_moeda(valor):
     )
 
 
-# ============================
+# =====================================
 # PÁGINA INICIAL
-# ============================
+# =====================================
 
 @app.route("/")
 def inicio():
     return render_template("index.html")
 
 
-# ============================
+# =====================================
 # CADASTRO DE USUÁRIOS
-# ============================
+# =====================================
 
 @app.route("/cadastro", methods=["GET", "POST"])
 def cadastro():
@@ -128,9 +134,9 @@ def cadastro():
     return render_template("cadastro.html", form=form)
 
 
-# ============================
+# =====================================
 # LOGIN E LOGOUT
-# ============================
+# =====================================
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -161,14 +167,16 @@ def logout():
     return redirect(url_for("inicio"))
 
 
-# ============================
+# =====================================
 # FORNECEDORES
-# ============================
+# =====================================
 
 @app.route("/fornecedores")
 @somente_proprietario
 def listar_fornecedores():
-    fornecedores = Fornecedor.query.order_by(Fornecedor.nome).all()
+    fornecedores = Fornecedor.query.order_by(
+        Fornecedor.nome
+    ).all()
 
     return render_template(
         "fornecedores.html",
@@ -187,7 +195,10 @@ def novo_fornecedor():
         if documento and Fornecedor.query.filter_by(
             cpf_cnpj=documento
         ).first():
-            flash("Este CPF/CNPJ já está cadastrado.", "danger")
+            flash(
+                "Este CPF/CNPJ já está cadastrado.",
+                "danger"
+            )
             return render_template(
                 "form_fornecedor.html",
                 form=form,
@@ -203,7 +214,10 @@ def novo_fornecedor():
         db.session.add(fornecedor)
         db.session.commit()
 
-        flash("Fornecedor cadastrado com sucesso!", "success")
+        flash(
+            "Fornecedor cadastrado com sucesso!",
+            "success"
+        )
         return redirect(url_for("listar_fornecedores"))
 
     return render_template(
@@ -213,7 +227,10 @@ def novo_fornecedor():
     )
 
 
-@app.route("/fornecedores/<int:id>/editar", methods=["GET", "POST"])
+@app.route(
+    "/fornecedores/<int:id>/editar",
+    methods=["GET", "POST"]
+)
 @somente_proprietario
 def editar_fornecedor(id):
     fornecedor = db.get_or_404(Fornecedor, id)
@@ -240,12 +257,17 @@ def editar_fornecedor(id):
                 )
 
         fornecedor.nome = form.nome.data.strip()
-        fornecedor.telefone = form.telefone.data.strip() or None
+        fornecedor.telefone = (
+            form.telefone.data.strip() or None
+        )
         fornecedor.cpf_cnpj = documento
 
         db.session.commit()
 
-        flash("Fornecedor atualizado!", "success")
+        flash(
+            "Fornecedor atualizado!",
+            "success"
+        )
         return redirect(url_for("listar_fornecedores"))
 
     return render_template(
@@ -255,7 +277,10 @@ def editar_fornecedor(id):
     )
 
 
-@app.route("/fornecedores/<int:id>/situacao", methods=["POST"])
+@app.route(
+    "/fornecedores/<int:id>/situacao",
+    methods=["POST"]
+)
 @somente_proprietario
 def alterar_situacao_fornecedor(id):
     fornecedor = db.get_or_404(Fornecedor, id)
@@ -263,20 +288,26 @@ def alterar_situacao_fornecedor(id):
     fornecedor.ativo = not fornecedor.ativo
     db.session.commit()
 
-    flash("Situação do fornecedor atualizada!", "success")
+    flash(
+        "Situação do fornecedor atualizada!",
+        "success"
+    )
     return redirect(url_for("listar_fornecedores"))
 
 
-# ============================
+# =====================================
 # ENTREGAS
-# ============================
+# =====================================
 
 def configurar_fornecedores(form, fornecedor_atual=None):
     fornecedores = Fornecedor.query.filter_by(
         ativo=True
     ).order_by(Fornecedor.nome).all()
 
-    if fornecedor_atual and fornecedor_atual not in fornecedores:
+    if (
+        fornecedor_atual
+        and fornecedor_atual not in fornecedores
+    ):
         fornecedores.append(fornecedor_atual)
 
     form.fornecedor_id.choices = [
@@ -290,7 +321,9 @@ def configurar_fornecedores(form, fornecedor_atual=None):
 def listar_entregas():
     consulta = Entrega.query.join(Fornecedor)
 
-    fornecedor_id = request.args.get("fornecedor_id", type=int)
+    fornecedor_id = request.args.get(
+        "fornecedor_id", type=int
+    )
     situacao = request.args.get("situacao", "")
     data_inicio = request.args.get("data_inicio", "")
     data_fim = request.args.get("data_fim", "")
@@ -308,15 +341,23 @@ def listar_entregas():
     try:
         if data_inicio:
             consulta = consulta.filter(
-                Entrega.data >= date.fromisoformat(data_inicio)
+                Entrega.data >= date.fromisoformat(
+                    data_inicio
+                )
             )
 
         if data_fim:
             consulta = consulta.filter(
-                Entrega.data <= date.fromisoformat(data_fim)
+                Entrega.data <= date.fromisoformat(
+                    data_fim
+                )
             )
+
     except ValueError:
-        flash("Uma das datas informadas é inválida.", "warning")
+        flash(
+            "Uma das datas informadas é inválida.",
+            "warning"
+        )
         return redirect(url_for("listar_entregas"))
 
     entregas = consulta.order_by(
@@ -325,7 +366,10 @@ def listar_entregas():
     ).all()
 
     total = sum(
-        (entrega.valor_total for entrega in entregas),
+        (
+            entrega.valor_total
+            for entrega in entregas
+        ),
         Decimal("0.00")
     )
 
@@ -347,7 +391,10 @@ def listar_entregas():
     )
 
 
-@app.route("/entregas/nova", methods=["GET", "POST"])
+@app.route(
+    "/entregas/nova",
+    methods=["GET", "POST"]
+)
 @somente_proprietario
 def nova_entrega():
     form = EntregaForm()
@@ -358,18 +405,25 @@ def nova_entrega():
 
     if not form.fornecedor_id.choices:
         flash(
-            "Cadastre um fornecedor ativo antes de registrar entregas.",
+            "Cadastre um fornecedor ativo antes "
+            "de registrar entregas.",
             "warning"
         )
-        return redirect(url_for("listar_fornecedores"))
+        return redirect(
+            url_for("listar_fornecedores")
+        )
 
     if form.validate_on_submit():
         fornecedor = db.session.get(
-            Fornecedor, form.fornecedor_id.data
+            Fornecedor,
+            form.fornecedor_id.data
         )
 
         if not fornecedor or not fornecedor.ativo:
-            flash("Selecione um fornecedor ativo.", "danger")
+            flash(
+                "Selecione um fornecedor ativo.",
+                "danger"
+            )
             return render_template(
                 "form_entrega.html",
                 form=form,
@@ -381,14 +435,19 @@ def nova_entrega():
             data=form.data.data,
             quantidade_caixas=form.quantidade_caixas.data,
             valor_unitario=form.valor_unitario.data,
-            observacoes=form.observacoes.data.strip() or None,
+            observacoes=(
+                form.observacoes.data.strip() or None
+            ),
             situacao="nao_paga"
         )
 
         db.session.add(entrega)
         db.session.commit()
 
-        flash("Entrega cadastrada com sucesso!", "success")
+        flash(
+            "Entrega cadastrada com sucesso!",
+            "success"
+        )
         return redirect(url_for("listar_entregas"))
 
     return render_template(
@@ -398,24 +457,31 @@ def nova_entrega():
     )
 
 
-@app.route("/entregas/<int:id>/editar", methods=["GET", "POST"])
+@app.route(
+    "/entregas/<int:id>/editar",
+    methods=["GET", "POST"]
+)
 @somente_proprietario
 def editar_entrega(id):
     entrega = db.get_or_404(Entrega, id)
 
     if not entrega.pode_editar:
         flash(
-            "Entregas pagas não podem ser editadas diretamente.",
+            "Entregas pagas não podem ser "
+            "editadas diretamente.",
             "warning"
         )
         return redirect(url_for("listar_entregas"))
 
     form = EntregaForm(obj=entrega)
-    configurar_fornecedores(form, entrega.fornecedor)
+    configurar_fornecedores(
+        form, entrega.fornecedor
+    )
 
     if form.validate_on_submit():
         fornecedor = db.session.get(
-            Fornecedor, form.fornecedor_id.data
+            Fornecedor,
+            form.fornecedor_id.data
         )
 
         if not fornecedor:
@@ -425,7 +491,10 @@ def editar_entrega(id):
             not fornecedor.ativo
             and fornecedor.id != entrega.fornecedor_id
         ):
-            flash("Selecione um fornecedor ativo.", "danger")
+            flash(
+                "Selecione um fornecedor ativo.",
+                "danger"
+            )
             return render_template(
                 "form_entrega.html",
                 form=form,
@@ -434,13 +503,22 @@ def editar_entrega(id):
 
         entrega.fornecedor_id = fornecedor.id
         entrega.data = form.data.data
-        entrega.quantidade_caixas = form.quantidade_caixas.data
-        entrega.valor_unitario = form.valor_unitario.data
-        entrega.observacoes = form.observacoes.data.strip() or None
+        entrega.quantidade_caixas = (
+            form.quantidade_caixas.data
+        )
+        entrega.valor_unitario = (
+            form.valor_unitario.data
+        )
+        entrega.observacoes = (
+            form.observacoes.data.strip() or None
+        )
 
         db.session.commit()
 
-        flash("Entrega atualizada com sucesso!", "success")
+        flash(
+            "Entrega atualizada com sucesso!",
+            "success"
+        )
         return redirect(url_for("listar_entregas"))
 
     return render_template(
@@ -450,27 +528,38 @@ def editar_entrega(id):
     )
 
 
-# ============================
+# =====================================
 # COMANDO ADMINISTRATIVO
-# ============================
+# =====================================
 
 @app.cli.command("criar-proprietario")
 @click.option("--nome", prompt="Nome completo")
 @click.option("--email", prompt="E-mail")
-@click.password_option("--senha", confirmation_prompt=True)
+@click.password_option(
+    "--senha",
+    confirmation_prompt=True
+)
 def criar_proprietario(nome, email, senha):
     email = email.strip().lower()
 
-    if Usuario.query.filter_by(perfil="proprietario").first():
-        click.echo("Já existe uma conta de proprietário.")
+    if Usuario.query.filter_by(
+        perfil="proprietario"
+    ).first():
+        click.echo(
+            "Já existe uma conta de proprietário."
+        )
         return
 
     if Usuario.query.filter_by(email=email).first():
-        click.echo("Este e-mail já está cadastrado.")
+        click.echo(
+            "Este e-mail já está cadastrado."
+        )
         return
 
     if len(nome.strip()) < 3 or len(senha) < 8:
-        click.echo("Nome ou senha fora dos requisitos mínimos.")
+        click.echo(
+            "Nome ou senha fora dos requisitos mínimos."
+        )
         return
 
     usuario = Usuario(
@@ -484,16 +573,20 @@ def criar_proprietario(nome, email, senha):
     db.session.add(usuario)
     db.session.commit()
 
-    click.echo("Proprietário cadastrado com sucesso!")
+    click.echo(
+        "Proprietário cadastrado com sucesso!"
+    )
 
 
-# ============================
+# =====================================
 # INICIALIZAÇÃO
-# ============================
+# =====================================
 
 with app.app_context():
     db.create_all()
 
 
 if __name__ == "__main__":
-    app.run(debug=os.environ.get("FLASK_DEBUG") == "1")
+    app.run(
+        debug=os.environ.get("FLASK_DEBUG") == "1"
+    )

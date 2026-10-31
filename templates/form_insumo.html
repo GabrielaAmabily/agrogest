@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block titulo %}{{ 'Editar' if insumo else 'Novo' }} insumo - AgroGest{% endblock %}
+{% block conteudo %}
+<div class="row justify-content-center"><div class="col-12 col-lg-7">
+<div class="card card-agrogest"><div class="card-body p-4">
+<h2 class="titulo-principal mb-4">{{ 'Editar insumo' if insumo else 'Cadastrar insumo' }}</h2>
+<form method="POST">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+<div class="mb-3"><label for="nome" class="form-label">Nome do insumo</label>
+<input class="form-control" type="text" id="nome" name="nome" maxlength="120" required value="{{ request.form.get('nome', insumo.nome if insumo else '') }}"></div>
+<div class="mb-3"><label for="categoria" class="form-label">Categoria</label>
+<select class="form-select" id="categoria" name="categoria" required>
+<option value="">Selecione</option>
+{% for c in categorias %}<option value="{{ c }}" {% if request.form.get('categoria', insumo.categoria if insumo else '') == c %}selected{% endif %}>{{ c }}</option>{% endfor %}
+</select></div>
+<div class="mb-3"><label for="unidade" class="form-label">Unidade de medida</label>
+<select class="form-select" id="unidade" name="unidade" required>
+<option value="">Selecione</option>
+{% for u in unidades %}<option value="{{ u }}" {% if request.form.get('unidade', insumo.unidade if insumo else '') == u %}selected{% endif %}>{{ u }}</option>{% endfor %}
+</select><div class="form-text">Depois que houver movimentações, a unidade não poderá ser alterada.</div></div>
+<div class="mb-4"><label for="estoque_minimo" class="form-label">Estoque mínimo</label>
+<input class="form-control" type="number" id="estoque_minimo" name="estoque_minimo" min="0" max="1000000" step="1" required value="{{ request.form.get('estoque_minimo', insumo.estoque_minimo if insumo else 0) }}"></div>
+<div class="d-flex flex-wrap gap-2"><button class="btn btn-agrogest" type="submit">Salvar</button>
+<a class="btn btn-outline-secondary" href="{{ url_for('estoque.listar_estoque') }}">Cancelar</a></div>
+</form></div></div></div></div>
+{% endblock %}

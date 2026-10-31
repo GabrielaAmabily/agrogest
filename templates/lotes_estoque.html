@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block titulo %}Lotes de {{ insumo.nome }} - AgroGest{% endblock %}
+{% block conteudo %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+<h2 class="titulo-principal mb-0">Lotes — {{ insumo.nome }}</h2>
+<a class="btn btn-outline-secondary" href="{{ url_for('estoque.listar_estoque') }}">Voltar</a></div>
+<p class="text-muted">Disponível: <strong>{{ insumo.quantidade_disponivel }} {{ insumo.unidade }}</strong> · Vencido: <strong>{{ insumo.quantidade_vencida }} {{ insumo.unidade }}</strong></p>
+<div class="card card-agrogest"><div class="card-body">
+{% if lotes %}<div class="table-responsive"><table class="table table-hover align-middle">
+<thead><tr><th>Lote</th><th>Saldo</th><th>Validade</th><th>Situação</th><th>Ação</th></tr></thead>
+<tbody>{% for lote in lotes %}<tr>
+<td>#{{ lote.id }}</td><td>{{ lote.quantidade_atual }} {{ insumo.unidade }}</td>
+<td>{{ lote.validade.strftime('%d/%m/%Y') if lote.validade else 'Sem validade' }}</td>
+<td>{% if lote.quantidade_atual == 0 %}<span class="badge bg-secondary">Esgotado</span>{% elif lote.validade and lote.validade < hoje %}<span class="badge bg-danger">Vencido</span>{% else %}<span class="badge bg-success">Disponível</span>{% endif %}</td>
+<td>{% if lote.quantidade_atual > 0 %}<form method="POST" action="{{ url_for('estoque.descartar_lote', id=lote.id) }}" onsubmit="return confirm('Descartar todo o saldo deste lote? Esta ação não pode ser desfeita.');">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-sm btn-outline-danger" type="submit">Descartar saldo</button></form>{% else %}—{% endif %}</td>
+</tr>{% endfor %}</tbody></table></div>
+{% else %}<p class="text-muted">Nenhum lote registrado.</p>{% endif %}
+</div></div>
+{% endblock %}

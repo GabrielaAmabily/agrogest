@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block titulo %}Histórico do estoque - AgroGest{% endblock %}
+{% block conteudo %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4"><h2 class="titulo-principal mb-0">Histórico de movimentações</h2><a class="btn btn-outline-secondary" href="{{ url_for('estoque.listar_estoque') }}">Voltar ao estoque</a></div>
+<div class="card card-agrogest"><div class="card-body">
+{% if movimentacoes %}<div class="table-responsive"><table class="table table-hover align-middle"><thead><tr><th>Data</th><th>Insumo</th><th>Tipo</th><th>Quantidade</th><th>Observação</th></tr></thead><tbody>
+{% for movimento in movimentacoes %}<tr><td>{{ movimento.data.strftime('%d/%m/%Y %H:%M') }}</td><td>{{ movimento.insumo.nome }}</td>
+<td>{% if movimento.tipo == 'entrada' %}<span class="badge bg-success">Entrada</span>{% elif movimento.tipo == 'descarte' %}<span class="badge bg-secondary">Descarte</span>{% else %}<span class="badge bg-danger">Saída</span>{% endif %}</td><td>{{ movimento.quantidade }} {{ movimento.insumo.unidade }}</td><td>{{ movimento.observacao or '-' }}</td></tr>{% endfor %}</tbody></table></div>
+{% else %}<p class="text-muted text-center my-4">Nenhuma movimentação registrada.</p>{% endif %}
+</div></div>
+{% endblock %}

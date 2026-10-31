@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block titulo %}Estoque - AgroGest{% endblock %}
+{% block conteudo %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+<h2 class="titulo-principal mb-0">Estoque de insumos</h2>
+<div class="d-flex flex-wrap gap-2">
+<a class="btn btn-outline-secondary" href="{{ url_for('estoque.listar_inativos') }}">Inativos</a>
+<a class="btn btn-outline-secondary" href="{{ url_for('estoque.historico_estoque') }}">Histórico</a>
+<a class="btn btn-agrogest" href="{{ url_for('estoque.novo_insumo') }}">+ Novo insumo</a>
+</div></div>
+<div class="row g-3 mb-4">
+<div class="col-md-4"><div class="card card-agrogest h-100"><div class="card-body"><p class="text-muted mb-1">Insumos ativos</p><h3>{{ insumos|length }}</h3></div></div></div>
+<div class="col-md-4"><div class="card card-agrogest h-100"><div class="card-body"><p class="text-muted mb-1">Estoque baixo</p><h3 class="text-warning">{{ estoque_baixo|length }}</h3></div></div></div>
+<div class="col-md-4"><div class="card card-agrogest h-100"><div class="card-body"><p class="text-muted mb-1">Lotes vencidos</p><h3 class="text-danger">{{ lotes_vencidos|length }}</h3></div></div></div>
+</div>
+{% if lotes_vencidos %}<div class="alert alert-danger"><strong>Atenção: lotes vencidos em estoque.</strong>
+<ul class="mb-0 mt-2">{% for lote in lotes_vencidos %}<li>{{ lote.insumo.nome }}: {{ lote.quantidade_atual }} {{ lote.insumo.unidade }} — {{ lote.validade.strftime('%d/%m/%Y') }}</li>{% endfor %}</ul></div>{% endif %}
+{% if lotes_proximos %}<div class="alert alert-warning"><strong>Vencimento nos próximos 30 dias:</strong>
+<ul class="mb-0 mt-2">{% for lote in lotes_proximos %}<li>{{ lote.insumo.nome }}: {{ lote.quantidade_atual }} {{ lote.insumo.unidade }} — {{ lote.validade.strftime('%d/%m/%Y') }}</li>{% endfor %}</ul></div>{% endif %}
+<div class="card card-agrogest"><div class="card-body">
+{% if insumos %}<div class="table-responsive"><table class="table table-hover align-middle">
+<thead><tr><th>Insumo</th><th>Categoria</th><th>Disponível</th><th>Vencido</th><th>Mínimo</th><th>Situação</th><th>Ações</th></tr></thead>
+<tbody>{% for insumo in insumos %}<tr>
+<td><strong>{{ insumo.nome }}</strong></td><td>{{ insumo.categoria }}</td>
+<td>{{ insumo.quantidade_disponivel }} {{ insumo.unidade }}</td>
+<td>{{ insumo.quantidade_vencida }} {{ insumo.unidade }}</td>
+<td>{{ insumo.estoque_minimo }} {{ insumo.unidade }}</td>
+<td>{% if insumo.estoque_baixo %}<span class="badge bg-warning text-dark">Estoque baixo</span>{% else %}<span class="badge bg-success">Normal</span>{% endif %}</td>
+<td><div class="d-flex flex-wrap gap-2">
+<a class="btn btn-sm btn-outline-primary" href="{{ url_for('estoque.editar_insumo', id=insumo.id) }}">Editar</a>
+<a class="btn btn-sm btn-outline-secondary" href="{{ url_for('estoque.listar_lotes', id=insumo.id) }}">Lotes</a>
+<a class="btn btn-sm btn-outline-success" href="{{ url_for('estoque.registrar_entrada', id=insumo.id) }}">Entrada</a>
+<a class="btn btn-sm btn-outline-danger" href="{{ url_for('estoque.registrar_saida', id=insumo.id) }}">Saída</a>
+<form method="POST" action="{{ url_for('estoque.alterar_situacao_insumo', id=insumo.id) }}" onsubmit="return confirm('Desativar este insumo?');">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-sm btn-outline-secondary" type="submit">Desativar</button></form>
+</div></td></tr>{% endfor %}</tbody></table></div>
+{% else %}<p class="text-muted text-center my-4">Nenhum insumo ativo cadastrado.</p>{% endif %}
+</div></div>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block titulo %}Insumos inativos - AgroGest{% endblock %}
+{% block conteudo %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4"><h2 class="titulo-principal mb-0">Insumos inativos</h2>
+<a class="btn btn-outline-secondary" href="{{ url_for('estoque.listar_estoque') }}">Voltar</a></div>
+<div class="card card-agrogest"><div class="card-body">
+{% if insumos %}<div class="table-responsive"><table class="table table-hover align-middle"><thead><tr><th>Nome</th><th>Categoria</th><th>Ação</th></tr></thead><tbody>
+{% for insumo in insumos %}<tr><td>{{ insumo.nome }}</td><td>{{ insumo.categoria }}</td>
+<td><form method="POST" action="{{ url_for('estoque.alterar_situacao_insumo', id=insumo.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-sm btn-outline-success" type="submit">Reativar</button></form></td></tr>{% endfor %}
+</tbody></table></div>{% else %}<p class="text-muted">Nenhum insumo inativo.</p>{% endif %}
+</div></div>
+{% endblock %}
