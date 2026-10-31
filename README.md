@@ -108,7 +108,11 @@ python -m pip install -r requirements-test.txt
 python -m pytest -v
 ```
 
-Os testes utilizam um banco SQLite temporário e não devem acessar o banco de desenvolvimento. O projeto registrou **6 testes automatizados aprovados** antes da última correção; há dois testes adicionais de regressão sobre a categoria de defensivos, cuja execução deve ser confirmada após aplicar essa alteração.
+Os testes automatizados utilizam uma aplicação Flask isolada e um banco de dados SQLite temporário, sem acessar o banco de desenvolvimento.
+
+A suíte contém 8 testes automatizados, todos aprovados, abrangendo cálculos financeiros, bloqueio de edição após pagamento, entradas e saídas de estoque, saldo insuficiente, controle de validade, restrições de acesso e validação da categoria de defensivos.
+
+Resultado da última execução: 8 testes aprovados em 3,57 segundos, utilizando Python 3.13.3 e pytest 9.2.0.
 
 ## Estrutura do projeto
 
